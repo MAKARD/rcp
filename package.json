@@ -1,0 +1,22 @@
+{
+  "name": "rcp",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"none\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MAKARD/rcp.git"
+  },
+  "author": "MAKARD",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MAKARD/rcp/issues"
+  },
+  "homepage": "https://github.com/MAKARD/rcp#readme",
+  "dependencies": {
+    "ts-node": "^10.9.2"
+  }
+}
