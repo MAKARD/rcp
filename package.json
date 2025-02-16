@@ -2,9 +2,10 @@
   "name": "rcp",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"none\""
+    "test": "echo \"none\"",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,21 @@
   },
   "homepage": "https://github.com/MAKARD/rcp#readme",
   "dependencies": {
-    "ts-node": "^10.9.2"
+    "ts-node": "10.9.2",
+    "typescript": "5.7.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.20.0",
+    "@stylistic/eslint-plugin-ts": "3.1.0",
+    "eslint": "9.20.1",
+    "eslint-import-resolver-typescript": "3.8.0",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-jest": "28.11.0",
+    "eslint-plugin-n": "17.15.1",
+    "jiti": "2.4.2",
+    "typescript-eslint": "8.24.0"
+  },
+  "engines": {
+    "node": "20.9.0"
   }
 }
