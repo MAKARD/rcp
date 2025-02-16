@@ -1,5 +1,6 @@
 // eslint-disable-next-line n/no-unsupported-features/node-builtins
 import readline from "readline/promises";
+import EventEmitter from "node:events";
 
 import {Game} from "./Game";
 import {Player} from "./Player";
@@ -9,11 +10,31 @@ const cmdReadLine = readline.createInterface({
     "output": process.stdout
 });
 
+const events = new EventEmitter<{
+    "players:ready": [];
+}>();
+const players: Array<Player> = [];
+
+(async () => {
+    let numberOfPlayers = NaN;
+    while (numberOfPlayers <= 1 || Number.isNaN(numberOfPlayers)) {
+        numberOfPlayers = Number(await cmdReadLine.question("Enter number of players "));
+    }
+
+    for (let i = 1; i <= numberOfPlayers; i++) {
+        let name = "";
+        while (!name) {
+            name = await cmdReadLine.question(`Enter player ${i} name `);
+        }
+
+        players.push(new Player(name));
+    }
+
+    events.emit("players:ready");
+})();
+
 const game = new Game(
-    [
-        new Player("player 1"),
-        new Player("player 2")
-    ],
+    players as [Player, Player],
     (playerName) => {
         return cmdReadLine.question(`player ${playerName} sets his hand:`);
     }
@@ -39,4 +60,6 @@ game.addListener("onEnd", () => {
     cmdReadLine.close();
 });
 
-game.play();
+events.on("players:ready", () => {
+    game.play();
+});
