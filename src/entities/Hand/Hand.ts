@@ -18,4 +18,8 @@ export abstract class Hand {
     toString () {
         return this.constructor.name;
     }
+
+    toJSON () {
+        return this.constructor.name;
+    }
 }
