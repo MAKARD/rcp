@@ -2,11 +2,10 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import nodePlugin from "eslint-plugin-n";
 import stylisticTs from "@stylistic/eslint-plugin-ts";
-import importPlugin from "eslint-plugin-import";
 import pluginJest from "eslint-plugin-jest";
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const {createTypeScriptImportResolver} = require("eslint-import-resolver-typescript");
+import {createTypeScriptImportResolver} from "eslint-import-resolver-typescript";
+// @ts-expect-error lack of typings
+import importPlugin from "eslint-plugin-import";
 
 // eslint-disable-next-line import/no-default-export
 export default tseslint.config(

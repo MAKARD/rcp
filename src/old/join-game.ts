@@ -1,6 +1,6 @@
 // eslint-disable-next-line n/no-unsupported-features/node-builtins
-import readline from "readline/promises";
-import Process from "node:process";
+import * as readline from "readline/promises";
+import * as Process from "node:process";
 
 import {io, Socket} from "socket.io-client";
 
@@ -44,36 +44,41 @@ const cancelableQuestion = async (question: string) => {
         "name": "player " + Date.now().toString()
     };
     const sessionId: string = "test";
-    let isJoined = false;
+    const isJoined = false;
 
-    while (!isJoined) {
-        // sessionId = await cmdReadLine.question("Enter session id ");
-        // const userId = await cmdReadLine.question("Enter user id ");
-        // const userName = await cmdReadLine.question("Enter user name ");
+    // while (!isJoined) {
+    // sessionId = await cmdReadLine.question("Enter session id ");
+    // const userId = await cmdReadLine.question("Enter user id ");
+    // const userName = await cmdReadLine.question("Enter user name ");
 
-        // player.id = userId;
-        // player.name = userName;
+    // player.id = userId;
+    // player.name = userName;
 
-        await new Promise<void>((resolve) => {
-            console.log(`Joining ${sessionId} session`);
+    await new Promise<void>((resolve) => {
+        console.log(`Joining ${sessionId} session`);
 
-            socket.emit("player/join", sessionId, player.name);
-
-            socket.once("player/joined", () => {
-                console.log(`Joined ${sessionId} session`);
-
-                isJoined = true;
-
-                resolve();
-            });
-
-            socket.once("player/not-joined", () => {
-                console.log(`Unable to join ${sessionId} session`);
-
-                resolve();
-            });
+        (socket.emit as any)("player/join", {
+            "gameId": sessionId,
+            "playerName": player.name
         });
-    }
+
+        resolve();
+
+        // socket.once("player/joined", () => {
+        //     console.log(`Joined ${sessionId} session`);
+
+        //     isJoined = true;
+
+        //     resolve();
+        // });
+
+        // socket.once("player/not-joined", () => {
+        //     console.log(`Unable to join ${sessionId} session`);
+
+        //     resolve();
+        // });
+    });
+    // }
 
     socket.on("player/joined", (playerName) => {
         console.log(`${playerName} joined session`);

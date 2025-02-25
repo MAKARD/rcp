@@ -47,7 +47,7 @@ export class PlayerController {
         return player;
     }
 
-    public setPlayerHand (playerId: string, hand) {
+    public setPlayerHand (playerId: string, hand: string) {
         const player = PlayersService.sharedInstance.getById(playerId);
 
         player.currentHand = hand;
