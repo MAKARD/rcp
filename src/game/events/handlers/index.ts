@@ -4,6 +4,7 @@ import {GameEndedHandler} from "./game-ended.handler";
 import {GameStartAllowedHandler} from "./game-start-allowed.handler";
 import {GameStartDeniedHandler} from "./game-start-denied.handler";
 import {PlayerAddedHandler} from "./player-added.handler";
+import {PlayerInvalidHandHandler} from "./player-invalid-hand.handler";
 import {PlayerMovedToSpectatorsHandler} from "./player-moved-to-spectators.handler";
 import {PlayerRemovedHandler} from "./player-removed.handler";
 import {PlayerSetHandHandler} from "./player-set-hand.handler";
@@ -18,6 +19,7 @@ export const EventHandlers = [
     GameStartAllowedHandler,
     GameStartDeniedHandler,
     PlayerAddedHandler,
+    PlayerInvalidHandHandler,
     PlayerMovedToSpectatorsHandler,
     PlayerRemovedHandler,
     PlayerSetHandHandler,

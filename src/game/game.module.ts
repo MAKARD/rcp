@@ -5,8 +5,9 @@ import {GameRepository} from "./repositories/game.repository";
 import {TimerRepository} from "./repositories/timer.repository";
 import {PlayerRepository} from "./repositories/player.repository";
 import {CommandHandlers} from "./commands/handlers";
-import {GameController} from "./game.controller";
+import {QueryHandlers} from "./queries/handlers";
 import {EventHandlers} from "./events/handlers";
+import {GameController} from "./game.controller";
 import {GameGateway} from "./game.gateway";
 
 @Module({
@@ -18,6 +19,7 @@ import {GameGateway} from "./game.gateway";
         PlayerRepository,
         GameGateway,
         ...CommandHandlers,
+        ...QueryHandlers,
         ...EventHandlers
     ]
 })

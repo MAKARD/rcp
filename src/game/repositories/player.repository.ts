@@ -16,7 +16,7 @@ export class PlayerRepository {
         const player = this.players.get(id);
 
         if (!player) {
-            throw new Error("Not found");
+            throw new Error(`Player ${id} not found`);
         }
 
         return player;

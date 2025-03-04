@@ -1,3 +1,5 @@
+import {JsonObject} from "type-fest";
+
 import {StateSubject} from "../../common/observables/StateSubject";
 
 import {Hand} from "./hand.interface";
@@ -11,4 +13,6 @@ export interface Player {
 
     resetHand(): void;
     setHandFromString(hand: string): void;
+
+    toJSON(): JsonObject;
 }

@@ -3,9 +3,20 @@ import {EventsHandler} from "@nestjs/cqrs/dist/decorators/events-handler.decorat
 
 import {RoundStartEvent} from "../impl/round-started.event";
 
+import {GameGateway} from "src/game/game.gateway";
+
 @EventsHandler(RoundStartEvent)
 export class RoundStartHandler implements IEventHandler<RoundStartEvent> {
+    constructor (
+        private readonly gameGateway: GameGateway
+    ) {}
+
     handle (event: RoundStartEvent) {
-        console.log("Starting round in", event.gameId, "with", event.playersInRound.map((player) => player.name));
+        const message = `Starting round in ${event.gameId} with ${event.playersInRound.map((player) => player.name)}`;
+
+        this.gameGateway.broadcastStatusWithinGame(event.gameId, {
+            "status": "round_started",
+            message
+        });
     }
 }

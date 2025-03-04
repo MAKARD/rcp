@@ -22,7 +22,7 @@ export class AddPlayerHandler implements ICommandHandler<AddPlayerCommand> {
 
         this.playerRepository.insertOne(player);
 
-        player.gameId.setValue(game.id);
+        player.gameId.next(game.id);
 
         game.addPlayer(player);
     }

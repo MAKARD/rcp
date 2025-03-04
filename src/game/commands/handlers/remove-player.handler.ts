@@ -17,7 +17,7 @@ export class RemovePlayerHandler implements ICommandHandler<RemovePlayerCommand>
         const game = this.gameRepository.findOneByIdOrFail(command.gameId);
 
         game.removePlayer(player);
-        player.gameId.setValue(undefined);
+        player.gameId.next(undefined);
 
         this.playerRepository.deleteOneById(player.id);
     }

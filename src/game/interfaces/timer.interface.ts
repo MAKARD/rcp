@@ -5,4 +5,5 @@ export interface Timer {
     readonly "timeLeft": ReadOnlyStateSubject<number>;
 
     reset(): void;
+    fastForward(): void;
 }

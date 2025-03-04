@@ -21,4 +21,10 @@
     "exclude": [
         "node_modules"
     ],
+    "include": [
+        "src/**/*",
+        "tests/**/*",
+        "jest.config.ts"
+    ],
+    "files": ["node_modules/jest-extended/types/index.d.ts"],
 }

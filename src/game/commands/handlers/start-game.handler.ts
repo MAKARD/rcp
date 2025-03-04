@@ -10,6 +10,8 @@ import {RequestPlayersHandsCommand} from "../impl/request-players-hands.command"
 import {GameRepository} from "../../repositories/game.repository";
 import {Game} from "../../interfaces/game.interface";
 
+class AbortError extends Error {}
+
 @CommandHandler(StartGameCommand)
 export class StartGameHandler implements ICommandHandler<StartGameCommand> {
     constructor (
@@ -27,11 +29,11 @@ export class StartGameHandler implements ICommandHandler<StartGameCommand> {
             Promise.all(playersInRound.map(async (player) => {
                 await new Promise<void>((resolve) => {
                     subscriptions.add(player.currentHand.subscribe(() => resolve()));
-                    subscriptions.add(player.isSpectator.subscribe(() => resolve()));
                     subscriptions.add(player.gameId.subscribe(() => resolve()));
                 });
             })),
-            new Promise((_, reject) => game.abortController?.signal.addEventListener("abort", reject))
+            new Promise((_, reject) => game.abortController?.signal
+                .addEventListener("abort", () => reject(new AbortError())))
         ]).finally(() => {
             subscriptions.unsubscribe();
         });
@@ -46,6 +48,7 @@ export class StartGameHandler implements ICommandHandler<StartGameCommand> {
 
             players.forEach((opponent1) => {
                 players.forEach((opponent2) => {
+
                     if (opponent1 === opponent2) {
                         return;
                     }
@@ -76,45 +79,36 @@ export class StartGameHandler implements ICommandHandler<StartGameCommand> {
     async execute (command: StartGameCommand) {
         const game = this.repository.findOneByIdOrFail(command.gameId);
 
-        let playersInRound = game.getPlayers();
+        game.prepareToStart();
 
-        playersInRound.forEach((player) => {
-            player.resetHand();
-        });
+        let playersInRound = game.getPlayers();
 
         const subscriptions = new Subscription();
 
         playersInRound.forEach((player) => {
             subscriptions.add(
-                player.isSpectator.subscribe((isSpectator) => {
-                    if (isSpectator) {
+                player.gameId.subscribe((gameId) => {
+                    if (!gameId) {
                         playersInRound = playersInRound.filter((playerInRound) => player.id !== playerInRound.id);
                     }
                 })
             );
         });
 
-        game.prepareToStart();
-
-        while (!game.abortController?.signal.aborted) {
-            if (!playersInRound.length) {
-                this.eventBus.publish(new GameEndedEvent(command.gameId));
-
-                console.log("HERE1");
-                game.abortController?.abort();
-
-                return;
-            }
-
-            this.eventBus.publish(new RoundStartEvent(command.gameId, playersInRound));
-
+        while (game.isRunning.getValue()) {
             try {
+                // TODO reconsider this check
+                if (playersInRound.length < 2) {
+                    throw new AbortError();
+                }
+
+                this.eventBus.publish(new RoundStartEvent(command.gameId, playersInRound));
+
                 const winners = await this.playRound(game, playersInRound);
 
                 if (winners.length === 1) {
                     this.eventBus.publish(new GameEndedEvent(command.gameId, winners[0]));
 
-                    console.log("HERE2");
                     game.abortController?.abort();
 
                     return;
@@ -128,7 +122,11 @@ export class StartGameHandler implements ICommandHandler<StartGameCommand> {
 
                 playersInRound = winners;
 
-            } catch {
+            } catch (error) {
+                if (!(error instanceof AbortError)) {
+                    throw error;
+                }
+
                 if (playersInRound.length === 1) {
                     this.eventBus.publish(new GameEndedEvent(command.gameId, playersInRound[0]));
                 } else {

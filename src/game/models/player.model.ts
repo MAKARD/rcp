@@ -24,10 +24,18 @@ export class PlayerModel extends AggregateRoot implements Player {
     public gameId = new StateSubject<string | undefined>(undefined);
 
     public resetHand () {
-        this.currentHand.setValue(new Unset());
+        this.currentHand.next(new Unset());
     }
 
     public setHandFromString (hand: string) {
-        this.currentHand.setValue(HandFactory.createFromString(hand));
+        this.currentHand.next(HandFactory.createFromString(hand));
+    }
+
+    toJSON () {
+        return {
+            "id": this.id,
+            "name": this.name,
+            "gameId": this.gameId.getValue() || ""
+        };
     }
 }

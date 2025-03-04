@@ -1,6 +1,5 @@
 import {AggregateRoot} from "@nestjs/cqrs";
-import {BehaviorSubject} from "rxjs";
-import {skip} from "rxjs/operators";
+import {Subject} from "rxjs";
 
 import {GameCreatedEvent} from "../events/impl/game-created.event";
 import {PlayerAddedEvent} from "../events/impl/player-added.event";
@@ -9,13 +8,16 @@ import {GameStartDeniedEvent} from "../events/impl/game-start-denied.event";
 import {Game} from "../interfaces/game.interface";
 import {Player} from "../interfaces/player.interface";
 import {PlayerRemovedEvent} from "../events/impl/player-removed.event";
+import {StateSubject} from "../../common/observables/StateSubject";
 
 export class GameModel extends AggregateRoot implements Game {
-    private players = new BehaviorSubject<Array<Player>>([]);
+    private players = new StateSubject<Array<Player>>([]);
 
-    private isSufficientPlayers = new BehaviorSubject(false);
+    private isSufficientPlayers = new Subject<boolean>();
 
     public abortController?: AbortController;
+
+    public isRunning = new StateSubject(false);
 
     constructor (
         public readonly id: string
@@ -25,7 +27,7 @@ export class GameModel extends AggregateRoot implements Game {
         this.autoCommit = true;
         this.apply(new GameCreatedEvent(id));
 
-        this.players.pipe(skip(1)).subscribe((playersArray) => {
+        this.players.subscribe((playersArray) => {
             this.isSufficientPlayers.next(
                 playersArray.filter((player) => !player.isSpectator.getValue()).length > 1
             );
@@ -33,21 +35,38 @@ export class GameModel extends AggregateRoot implements Game {
 
         this.isSufficientPlayers.subscribe((isSufficientPlayers) => {
             if (isSufficientPlayers) {
+                if (this.isRunning.getValue()) {
+                    return;
+                }
+
                 this.apply(new GameStartAllowedEvent(this.id));
             } else {
                 this.apply(new GameStartDeniedEvent(this.id));
             }
         });
 
+        this.isRunning.subscribe((isRunning) => {
+            if (isRunning) {
+                return;
+            }
+
+            this.players.next([...this.players.getValue()]);
+        });
     }
 
     prepareToStart () {
+        this.players.getValue().forEach((player) => {
+            player.resetHand();
+        });
+
         this.abortController = new AbortController();
+
+        this.isRunning.next(true);
 
         this.abortController.signal.addEventListener("abort", () => {
             this.abortController = undefined;
 
-            this.players.next([...this.players.getValue()]);
+            this.isRunning.next(false);
         });
     }
 
@@ -56,15 +75,15 @@ export class GameModel extends AggregateRoot implements Game {
             .getValue()
             .findIndex((existingPlayer) => existingPlayer.id === player.id);
 
-        player.isSpectator.subscribe(() => {
-            this.players.next([...this.players.getValue()]);
-        });
-
         if (foundPlayerIndex !== -1) {
-            throw new Error("Existing");
+            throw new Error(`Player ${player.id} is already added`);
         }
 
-        this.apply(new PlayerAddedEvent(player));
+        if (this.isRunning.getValue()) {
+            player.isSpectator.next(true);
+        }
+
+        this.apply(new PlayerAddedEvent(this.id, player));
 
         this.players.next(this.players.getValue().concat([player]));
     }

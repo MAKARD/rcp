@@ -8,4 +8,8 @@ export class Unset extends AbstractHand {
     lossesTo () {
         return () => {};
     }
+
+    toString () {
+        return "no hand";
+    }
 }

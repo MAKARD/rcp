@@ -27,7 +27,7 @@ Feature: Determining game result
     Given At least three players are in an active game
     When At least two players respond with 'scissors'
     And The remaining players respond with 'paper'
-    Then The game declares a draw
+    Then The game starts new round with those two players
 
   Scenario: Identical hands
     Given At least two players are in an active game

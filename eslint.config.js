@@ -4,7 +4,6 @@ import nodePlugin from "eslint-plugin-n";
 import stylisticTs from "@stylistic/eslint-plugin-ts";
 import pluginJest from "eslint-plugin-jest";
 import {createTypeScriptImportResolver} from "eslint-import-resolver-typescript";
-// @ts-expect-error lack of typings
 import importPlugin from "eslint-plugin-import";
 
 // eslint-disable-next-line import/no-default-export

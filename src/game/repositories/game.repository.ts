@@ -16,7 +16,7 @@ export class GameRepository {
         const game = this.games.get(id);
 
         if (!game) {
-            throw new Error("Not found");
+            throw new Error(`Game ${id} is not found`);
         }
 
         return game;
