@@ -1,12 +1,14 @@
 import {defineFeature, loadFeature} from "jest-cucumber";
 
-import {gameCreator, gameSpectator} from "../../../hooks";
-import {ConnectedPlayer, fastForwardTimer, getGameStatus, joinGame} from "../../../actions";
+import {gameCreator} from "../../../hooks/game-creator.hook";
+import {gameSpectator} from "../../../hooks/game-spectator.hook";
+import {getGameStatus} from "../../../actions/get-game-status.action";
+import {ConnectedPlayer, joinGame} from "../../../actions/join-game.action";
+import {fastForwardTimer} from "../../../actions/fast-forward-timer.action";
 
 const feature = loadFeature("tests/scenarios/quorum/features/active-game.feature");
 
-defineFeature(feature, test => {
-
+defineFeature(feature, (test) => {
     test("Losing starting quorum: one player left", ({
         given,
         when,
@@ -19,10 +21,10 @@ defineFeature(feature, test => {
         let playerOne: ConnectedPlayer;
 
         given("At most two players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
 
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
@@ -34,13 +36,14 @@ defineFeature(feature, test => {
         then("The game stops", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "game_is_denied_to_start");
 
-            expect(data.message).toBe(`Game ${game.id.getValue()} is denied to start`);
+            expect(data.event.gameId).toBe(game.id.getValue());
         });
 
         and("The remaining player is declared the winner", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "game_ended_with_winner");
 
-            expect(data.message).toBe(`Game ${game.id.getValue()} won by test player 2 with no hand`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.winner.name).toBe("test player 2");
         });
     });
 
@@ -55,11 +58,11 @@ defineFeature(feature, test => {
         let playerOne: ConnectedPlayer;
 
         given("At least three players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
-            await joinGame(game.id.getValue(), "test player 3", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
+            await joinGame(game.id.getValue(), "test player 3");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
 
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
@@ -71,7 +74,7 @@ defineFeature(feature, test => {
         then("The game continues with the remaining players", async () => {
             const status = await getGameStatus(game.id.getValue());
 
-            expect(status.players.map(({name}) => name)).toIncludeAllMembers(["test player 2", "test player 3"]);
+            expect(status.players.map(({name}) => name)).toIncludeSameMembers(["test player 2", "test player 3"]);
         });
     });
 
@@ -85,10 +88,10 @@ defineFeature(feature, test => {
         const spectator = gameSpectator(game.id);
 
         given("At least two players are in an active game", async () => {
-            await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
 
@@ -99,14 +102,15 @@ defineFeature(feature, test => {
         then("The joined player joins as a spectator", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "spectator_added");
 
-            expect(data.message).toBe(`Player test player 3 added to ${game.id.getValue()}`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.player.name).toBe("test player 3");
         });
 
         and("The game continues with the initially joined players", async () => {
             const status = await getGameStatus(game.id.getValue());
 
-            expect(status.players.map(({name}) => name)).toIncludeAllMembers(["test player 1", "test player 2"]);
-            expect(status.spectators.map(({name}) => name)).toIncludeAllMembers(["test player 3"]);
+            expect(status.players.map(({name}) => name)).toIncludeSameMembers(["test player 1", "test player 2"]);
+            expect(status.spectators.map(({name}) => name)).toIncludeSameMembers(["test player 3"]);
         });
     });
 
@@ -120,16 +124,16 @@ defineFeature(feature, test => {
         const spectator = gameSpectator(game.id);
 
         given("At least two players are in an active game", async () => {
-            await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
 
         let spectatorSocket: ConnectedPlayer;
         and("At least one spectator is in the active game", async () => {
-            spectatorSocket = await joinGame(game.id.getValue(), "test player 3", spectator);
+            spectatorSocket = await joinGame(game.id.getValue(), "test player 3");
         });
 
         when("A spectator leaves the game", () => {
@@ -139,7 +143,7 @@ defineFeature(feature, test => {
         then("The game continues with the initially joined players", async () => {
             const status = await getGameStatus(game.id.getValue());
 
-            expect(status.players.map(({name}) => name)).toIncludeAllMembers(["test player 1", "test player 2"]);
+            expect(status.players.map(({name}) => name)).toIncludeSameMembers(["test player 1", "test player 2"]);
         });
     });
 });

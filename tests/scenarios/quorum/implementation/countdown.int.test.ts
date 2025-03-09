@@ -1,12 +1,12 @@
 import {defineFeature, loadFeature} from "jest-cucumber";
 
-import {gameCreator, gameSpectator} from "../../../hooks";
-import {ConnectedPlayer, joinGame} from "../../../actions";
+import {gameCreator} from "../../../hooks/game-creator.hook";
+import {gameSpectator} from "../../../hooks/game-spectator.hook";
+import {ConnectedPlayer, joinGame} from "../../../actions/join-game.action";
 
 const feature = loadFeature("tests/scenarios/quorum/features/countdown.feature");
 
-defineFeature(feature, test => {
-
+defineFeature(feature, (test) => {
     test("Reaching starting quorum: player joined", ({
         given,
         when,
@@ -16,17 +16,18 @@ defineFeature(feature, test => {
         const spectator = gameSpectator(game.id);
 
         given("At most one player is in a game", async () => {
-            await joinGame(game.id.getValue(), "test player 1", spectator);
+            await joinGame(game.id.getValue(), "test player 1");
         });
 
         when("A player joins the game", async () => {
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            await joinGame(game.id.getValue(), "test player 2");
         });
 
         then("The game starts counting down", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "timer_tick");
 
-            expect(data.message).toBe(`Starting game ${game.id.getValue()} in 5 seconds`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.timeLeft).toBe(5);
         });
     });
 
@@ -42,8 +43,8 @@ defineFeature(feature, test => {
         let playerOne: ConnectedPlayer;
 
         given("At most two players are in a game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
         });
 
         and("The game is counting down before the start", async () => {
@@ -71,9 +72,9 @@ defineFeature(feature, test => {
         let playerOne: ConnectedPlayer;
 
         given("At least three players are in a game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
-            await joinGame(game.id.getValue(), "test player 3", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
+            await joinGame(game.id.getValue(), "test player 3");
         });
 
         and("The game is counting down before the start", async () => {
@@ -101,8 +102,8 @@ defineFeature(feature, test => {
         const spectator = gameSpectator(game.id);
 
         given("At least two players are in a game", async () => {
-            await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
         });
 
         and("The game is counting down before the start", async () => {
@@ -110,7 +111,7 @@ defineFeature(feature, test => {
         });
 
         when("A player joins the game", async () => {
-            await joinGame(game.id.getValue(), "test player 3", spectator);
+            await joinGame(game.id.getValue(), "test player 3");
         });
 
         then("The game continues counting down", async () => {

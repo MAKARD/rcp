@@ -1,13 +1,14 @@
 import {defineFeature, loadFeature} from "jest-cucumber";
 import waitForExpect from "wait-for-expect";
 
-import {ConnectedPlayer, fastForwardTimer, joinGame} from "../../../actions";
-import {gameCreator, gameSpectator} from "../../../hooks";
+import {gameCreator} from "../../../hooks/game-creator.hook";
+import {gameSpectator} from "../../../hooks/game-spectator.hook";
+import {ConnectedPlayer, joinGame} from "../../../actions/join-game.action";
+import {fastForwardTimer} from "../../../actions/fast-forward-timer.action";
 
 const feature = loadFeature("tests/scenarios/players/features/hands.feature");
 
-defineFeature(feature, test => {
-
+defineFeature(feature, (test) => {
     test("Asking players for their hands", ({
         given,
         when,
@@ -20,12 +21,12 @@ defineFeature(feature, test => {
         let playerTwo: ConnectedPlayer;
 
         given("At least two players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            playerTwo = await joinGame(game.id.getValue(), "test player 2", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            playerTwo = await joinGame(game.id.getValue(), "test player 2");
         });
 
         when("The next round starts", async () => {
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
 
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
@@ -50,10 +51,10 @@ defineFeature(feature, test => {
         let playerTwo: ConnectedPlayer;
 
         given("At least two players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            playerTwo = await joinGame(game.id.getValue(), "test player 2", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            playerTwo = await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
 
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
@@ -72,7 +73,8 @@ defineFeature(feature, test => {
 
             const data = await spectator.waitForStatus(({status}) => status === "game_ended_with_winner");
 
-            expect(data.message).toBe(`Game ${game.id.getValue()} won by test player 1 with paper`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.winner.name).toBe("test player 1");
         });
     });
 
@@ -87,11 +89,11 @@ defineFeature(feature, test => {
         let playerOne: ConnectedPlayer;
 
         given("At least two players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
 
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
         });
 
         when("A player responds with 'paper', 'rock', or 'scissors'", () => {
@@ -101,7 +103,8 @@ defineFeature(feature, test => {
         then("The game accepts their response", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "hand_set");
 
-            expect(data.message).toBe("Player test player 1 set hand");
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.player.name).toBe("test player 1");
         });
     });
 
@@ -116,10 +119,10 @@ defineFeature(feature, test => {
         let playerOne: ConnectedPlayer;
 
         given("At least two players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            await joinGame(game.id.getValue(), "test player 2", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
 
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
@@ -131,7 +134,8 @@ defineFeature(feature, test => {
         then("The player is removed from the game", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "player_removed");
 
-            expect(data.message).toBe(`Player test player 1 is removed from ${game.id.getValue()}`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.player.name).toBe("test player 1");
         });
     });
 
@@ -147,10 +151,10 @@ defineFeature(feature, test => {
         let playerTwo: ConnectedPlayer;
 
         given("At least two players are in an active game", async () => {
-            playerOne = await joinGame(game.id.getValue(), "test player 1", spectator);
-            playerTwo = await joinGame(game.id.getValue(), "test player 2", spectator);
+            playerOne = await joinGame(game.id.getValue(), "test player 1");
+            playerTwo = await joinGame(game.id.getValue(), "test player 2");
 
-            fastForwardTimer(game.id.getValue());
+            await fastForwardTimer(game.id.getValue());
 
             await spectator.waitForStatus(({status}) => status === "round_started");
         });
@@ -163,7 +167,8 @@ defineFeature(feature, test => {
         then("The game declares the results", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "game_ended_with_winner");
 
-            expect(data.message).toBe(`Game ${game.id.getValue()} won by test player 1 with paper`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.winner.name).toBe("test player 1");
         });
     });
 });

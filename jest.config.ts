@@ -8,21 +8,16 @@ const presetConfig = createJsWithTsPreset({
 
 const jestConfig: JestConfigWithTsJest = {
     ...presetConfig,
-    "setupFilesAfterEnv": [
-        "./tests/setup-after-env.ts"
-    ],
+    "collectCoverage": !process.env.TEST_DEBUG_LOGS,
+    "collectCoverageFrom": ["<rootDir>/tests/**/*.ts"],
+    "coverageDirectory": "<rootDir>/coverage/tests",
+    "coverageReporters": ["json"],
     "globalSetup": "./tests/setup.ts",
     "globalTeardown": "./tests/teardown.ts",
-    "modulePathIgnorePatterns": ["<rootDir>/.*/__mocks__"],
-    "transformIgnorePatterns": ["^.+\\.js$"],
-    "testMatch": [
-        "<rootDir>/tests/**/*.test.ts"
-    ],
-    "collectCoverage": true,
-    "coverageReporters": ["none"],
-    "collectCoverageFrom": [
-        "<rootDir>/**/*.ts"
-    ]
+    "setupFilesAfterEnv": ["./tests/setup-after-env.ts"],
+    "testMatch": ["<rootDir>/tests/**/*.test.ts"],
+    "testTimeout": 10000,
+    "transformIgnorePatterns": ["^.+\\.js$"]
 };
 
 // eslint-disable-next-line import/no-default-export

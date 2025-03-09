@@ -1,9 +1,10 @@
 import {Module} from "@nestjs/common";
 
-import {GameModule} from "./game/game.module";
+import {OrchestratorModule} from "./orchestrator/orchestrator.module";
+import {LoggerModule} from "./logger/logger.module";
 
 @Module({
-    "imports": [GameModule],
-    "controllers": []
+    "controllers": [],
+    "imports": [OrchestratorModule, LoggerModule]
 })
 export class AppModule {}

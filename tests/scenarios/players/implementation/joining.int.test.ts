@@ -1,13 +1,13 @@
 import {defineFeature, loadFeature} from "jest-cucumber";
 import {io} from "socket.io-client";
 
-import {joinGame} from "../../../actions";
-import {gameCreator, gameSpectator} from "../../../hooks";
+import {gameCreator} from "../../../hooks/game-creator.hook";
+import {gameSpectator} from "../../../hooks/game-spectator.hook";
+import {joinGame} from "../../../actions/join-game.action";
 
 const feature = loadFeature("tests/scenarios/players/features/joining.feature");
 
-defineFeature(feature, test => {
-
+defineFeature(feature, (test) => {
     test("One player", ({
         given,
         when,
@@ -38,7 +38,8 @@ defineFeature(feature, test => {
         then("The player joins the game they passed in params", async () => {
             const data = await spectator.waitForStatus(({status}) => status === "player_added");
 
-            expect(data.message).toBe(`Player test player 1 (one player) added to ${game.id.getValue()}`);
+            expect(data.event.gameId).toBe(game.id.getValue());
+            expect(data.event.player.name).toBe("test player 1 (one player)");
         });
     });
 
@@ -60,7 +61,7 @@ defineFeature(feature, test => {
         });
 
         given("At least one player is already in a game", async () => {
-            await joinGame(game.id.getValue(), "test player 1", spectator);
+            await joinGame(game.id.getValue(), "test player 1");
         });
 
         and("A player connected to the socket gateway", () => {
@@ -76,7 +77,9 @@ defineFeature(feature, test => {
 
         then("The player joins the game they passed in params", async () => {
             await spectator
-                .waitForStatus(({message}) => message === `Player test player 2 added to ${game.id.getValue()}`);
+                .waitForStatus(
+                    ({event, status}) => event.player?.name === "test player 2" && status === "player_added"
+                );
         });
     });
 });

@@ -24,7 +24,8 @@
     "include": [
         "src/**/*",
         "tests/**/*",
-        "jest.config.ts"
+        "jest.config.ts",
+        "eslint.config.ts"
     ],
     "files": ["node_modules/jest-extended/types/index.d.ts"],
 }
